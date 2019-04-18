@@ -6,14 +6,14 @@ a few useful methods.
 
 ##### USAGE:
 
-    let A2  = require ("arsub");
+    let A  = require ("arsub");
         
-    let a2 = A2.of(1,2,3);
-    a2.end();
-    a2.wof();
-    a2.wol();
+    let a = A.of(1,2,3);
+    a.end();
+    a.wof();
+    a.wol();
 
-    a2.monad (e=>[e]);
+    a.monad (e=>[e]);
 
 
 ##### RELEASE-ANNOUNCEMENTS:
@@ -23,6 +23,7 @@ https://twitter.com/ClassCloudLLC
    
 #### 0. MOTIVATING EXAMPLE
 
+    const A   = require ("arsub");
     let a     = A.of (1,2,3,99);
     let last  = a.end();
     A.ok (last, 99);
@@ -44,6 +45,7 @@ https://twitter.com/ClassCloudLLC
 
 ##### B) With  browser
 
+Not quite there yet
 
     <script src="arsub.js"></script>
     <script> let A2  = A2;
