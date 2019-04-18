@@ -1,8 +1,8 @@
 {
   "name"        : "arsub"
-, "version"     : "0.0.5"
+, "version"     : "0.0.6"
 , "description" : "An Array subclass providing a few missing methods"
-, "main"        : "array_sub.js"
+, "main"        : "arsub.js"
 
   , "author"  : "Panu Viljamaa"
   , "license" : "Apache 2.0"
