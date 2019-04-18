@@ -4,81 +4,114 @@
 
 "use strict";
 
-module.exports =  _A2() ;
+module.exports =  _arsub() ;
 
 
-function _A2 (   )
+function _arsub (   )
 {
-  return class A2 extends Array
+  return class Arsub extends Array
 	{
 
 	  static test ()
-		{ let a2 = this.of (1, 2, 3);
-		  ok  (a2 instanceof Array);
-		  ok (a2, [1, 2, 3]);
+		{
+		  const A = Arsub; // shorthand
 
-      let see4 = a2 + "";
-      a2.push (77);
-      ok (a2.length === 4)
-      ok (a2.pop()  === 77)
-      ok (a2.length === 3)
+		  let a = A.of (1, 2, 3);
+		  ok  (a instanceof Array);
+		  ok (a, [1, 2, 3]);
+
+      ok (a.end);
+      ok (a.slice(0).end(), 3);
+      // When you create new array from an
+      // Arsun instance with methods like slice()
+      // inherited from Array the result is still
+      // an instance of the subclass Arsub, so it
+      // has its extra methods so you can keep on
+      // using those.
+
+      let see4 = a + "";
+      a.push (77);
+      ok (a.length === 4)
+      ok (a.pop()  === 77)
+      ok (a.length === 3)
 
 
-			ok (a2.size(), 3)
-			ok (a2.end() , 3);  // default arg is 0 meaning return the end-element
-			ok (a2.end(0), 3);
-			ok (a2.end(1), 2);        // 1 means return the 1st before last
-		  ok (a2.end(2), 1)         // 2 means return the 2nd before last
-      ok (a2.end(3), undefined) // 3 steps from the end is undefined
+			ok (a.size(), 3)
+			ok (a.end() , 3);  // default arg is 0 meaning return the end-element
+			ok (a.end(0), 3);
+			ok (a.end(1), 2);        // 1 means return the one before last
+		  ok (a.end(2), 1)         // 2 means return the 2nd before last
+      ok (a.end(3), undefined) // 3 steps left is index -1 whose value is undefined
 
 
-			ok (a2.wof (0), [1,2,3]) ; // drop zero elements from left
-			ok (a2.wof () , [2,3])   ; // 1 is the default but seldom used
-			ok (a2.wof (1), [2,3])   ; // if you want to drop 1 must be clear
- 			ok (a2.wof (2), [3])     ;
-			ok (a2.wof (3), [])      ;
-			ok (a2.wof (4), [])      ;
+			ok (a.wof (0), [1,2,3])   ; // Drop zero first elements.
+			ok (a.wof (1), [2,3])     ; // Without one first element.
+			ok (a.wof () , [2,3])     ; // Same. 1 is the default arg-value.
 
-		  ok (a2.wof (-1), [3])      ; // all except last 1
-		  ok (a2.wof (-2), [2,3])    ; // all exceptlast 2
-		  ok (a2.wof (-3), [1,2,3])  ; // drop all except last 3 == keep all of them
-		  ok (a2.wof (-55), [1,2,3]) ; // drop all except last 55 == keep all of them
+ 			ok (a.wof (2), [3])       ; // without first two
+			ok (a.wof (3), [])        ;
+			ok (a.wof (4), [])        ;
 
-			ok (a2.wol (0), [1,2,3]) ; // drop zero elements from left
-			ok (a2.wol ( ), [1,2])   ; // 1 is the default but seldom used
-			ok (a2.wol (1), [1,2])   ; // if you want to drop 1 you must be clear
- 			ok (a2.wol (2), [1])     ;
-			ok (a2.wol (3), [])      ;
-			ok (a2.wol (4), [])      ;
+		  ok (a.wof (-1), [3])      ; // all except last 1
+		  ok (a.wof (-2), [2,3])    ; // all exceptlast 2
+		  ok (a.wof (-3), [1,2,3])  ; // drop all except last 3 == keep all of them
+		  ok (a.wof (-55), [1,2,3]) ; // drop all except last 55 == keep all of them
 
-		  ok (a2.wol (-1), [1])      ; // drop all but FIRST 1
-		  ok (a2.wol (-2), [1,2])    ; // drop all but FIRST 2
-		  ok (a2.wol (-3), [1,2,3])  ; // drop all but FIRST 3 == drop nothing
-		  ok (a2.wol (-7), [1,2,3])  ; // drop all but FIRST 7 == drop nothing
+			ok (a.wol (0), [1,2,3]) ; // Drop zero last elements. Means return a shallow copy
+			ok (a.wol (1), [1,2])   ; // Drop one elment from the end.
+			ok (a.wol ( ), [1,2])   ; // Same. 1 is the default but value of the argument.
+ 			ok (a.wol (2), [1])     ;
+			ok (a.wol (3), [])      ;
+			ok (a.wol (4), [])      ;
+
+		  ok (a.wol (-1), [1])    ; // drop all but FIRST 1
+		  ok (a.wol (-2), [1,2])  ; // drop all but FIRST 2
+		  ok (a.wol (-3), [1,2,3]); // drop all but FIRST 3 == drop nothing
+		  ok (a.wol (-7), [1,2,3]); // drop all but FIRST 7 == drop nothing
 
 
 // MONAD TESTS:
 
-      let a3 = a2.monad ( (e, i, a) => e + i );
-      ok (a3, [1,3,5]);
+ ok (a, [1,2,3]);
 
+ let a3 = a.monad ( (e, i, a) => e + i );
+ ok (a3, [1,3,5]);
+
+ let a4 = a.monad (e=>[e]);
+ ok (a4, [1,2,3]);
+
+ // In the sacred books of Monad it is said
+ // that the bind() argument-function must
+ // be of type e=>[e] like above e=>[e].
+ // But in arsub-monads if the argument-function
+ // returns a NON-array  it is simply converted
+ // to one containing the original result as its
+ // only element. Therefore the above does exactly
+ // the same as next:
+
+ let a5 = a.monad (e=>e);
+ ok (a5, [1,2,3]);
 
  let x = 0;
  let y = 0;
- let obAndState = A2.of ( {name: 'pieceA'}, {x, y}) ;
+ let obAndState = A.of ( {name: 'pieceA'}, {x, y}) ;
 
  let  nextPosition
  = obAndState.monad (left)
-             .monad (up)
-             .monad (right)
-             .monad (down)
-             .monad (down)
-             .monad (left);
+             .flat  (up)     // flat() is a SYNONYM for monad(),
+             .flat  (right)  // a bit shorter and more meaningful
+             .monad (down)   // name, so take your pick.
+             .monad (down)   // Note monad() does not return
+             .monad (left);  // a "monad" but a "monadic value"
+                             // Think of the method-name as the
+                             // verb "to monad". Another name
+                             // for it could be "flat-map".
 
  ok (nextPosition[1], {x:-1, y:-1});
 
- console.log (`A2.js tests have run`);
+ console.log (`SUCCESS Arsub tests have run`);
  return;
+
 
 function left (e, i, a)
 {
@@ -164,11 +197,11 @@ function down (e, i, a)
 		}
 
 		[Symbol.toPrimitive] (hint)
-		{ return `A2.of(${this[0]}, ${this[1]}, ...)`
+		{ return `Arsub.of(${this[0]}, ${this[1]}, ...)`
 		}
 
     monad (funk)
-		{ let result     = A2.of();
+		{ let result     = Arsub.of();
 	    let elemArrays = this.map (funk);
 
 			for (let i=0; i < elemArrays.length; i++)
@@ -177,7 +210,7 @@ function down (e, i, a)
 				{ continue;
 				}
 				if (! (elemArray instanceof Array ))
-				{  elemArray = A2.of(elemArray);
+				{  elemArray = Arsub.of(elemArray);
 				}
 				for (let j=0; j < elemArray.length; j++)
 				{ result.push (elemArray[j]);
@@ -187,6 +220,9 @@ function down (e, i, a)
 			return result;
 		}
 
+    flat (funk)
+		{ return this.monad(funk);
+		}
 	} .init();
 
 

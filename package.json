@@ -1,6 +1,6 @@
 {
   "name"        : "arsub"
-, "version"     : "0.0.1"
+, "version"     : "0.0.3"
 , "description" : "An Array subclass providing a few missing methods"
 , "main"        : "array_sub.js"
 
