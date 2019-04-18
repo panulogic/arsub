@@ -4,6 +4,14 @@
 For information about future releases
 follow https://twitter.com/ClassCloudLLC.
 
+######
+##### v. 0.0.7: Instance-methods eq() and of()
+
+    ok (a.eq ([1,2,3]));
+    ok (a.eq ([1,2,3])  === true );
+    ok (a.eq ([1,2,55]) === false);
+
+    ok (a.of (7,8) . eq ([7,8]));
 
 ##### v. 0.0.6: Fixed package.json so main file is arsub.js
 ##### v. 0.0.5: Better docs

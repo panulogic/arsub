@@ -28,7 +28,7 @@ https://twitter.com/ClassCloudLLC
     let last  = a.end();
     A.ok (last, 99);
     // no more clumsy a[a.length-1]
-    // ever time you need to get
+    // every time you need to get
     // the last element of an array.
 
 

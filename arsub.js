@@ -69,6 +69,16 @@ function _arsub (   )
 		  ok (a.wol (-3), [1,2,3]); // drop all but FIRST 3 == drop nothing
 		  ok (a.wol (-7), [1,2,3]); // drop all but FIRST 7 == drop nothing
 
+      ok (a.eq ([1,2,3]));
+      ok (a.eq ([1,2,3])  === true );
+      ok (a.eq ([1,2,55]) === false);
+
+
+// You can create a new Arsub if you
+// have  an exsiting instance, no need
+// ask for its constructor:
+
+      ok (a.of (7,8) . eq ([7,8]));
 
 // MONAD TESTS:
 
@@ -151,10 +161,18 @@ function down (e, i, a)
 
 } // end test()
 
-    static init()
-		{ this.ok = ok; // others may want to use it too
-		  this.test();
-		  return this;
+
+    eq (a2)
+		{ try
+			{ ok (this, a2);
+			} catch (e)
+			{ return false;
+			}
+			return true;
+		}
+
+    of  (...args)
+		{ return Arsub.of (...args);
 		}
 
     size ()
@@ -223,6 +241,13 @@ function down (e, i, a)
     flat (funk)
 		{ return this.monad(funk);
 		}
+
+		static init()
+		{ this.ok = ok; // others may want to use it too
+		  this.test();
+		  return this;
+		}
+
 	} .init();
 
 
