@@ -5,6 +5,10 @@ For information about future releases
 follow https://twitter.com/ClassCloudLLC.
 
 ######
+##### v. 0.0.8: Simpler way to create arrays
+
+     let a = A (1,2,3,99);
+
 ##### v. 0.0.7: Instance-methods eq() and of()
 
     ok (a.eq ([1,2,3]));

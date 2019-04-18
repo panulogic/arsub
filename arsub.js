@@ -4,20 +4,23 @@
 
 "use strict";
 
-module.exports =  _arsub() ;
-
+module.exports =  _arsub().A;
 
 function _arsub (   )
 {
   return class Arsub extends Array
 	{
-
+    static A (...args)
+		{ return Arsub.of (...args);
+		}
 	  static test ()
 		{
-		  const A = Arsub; // shorthand
+		  const A = this.A; // shorthand see above this 'A' is what
+		                    // will be exported from this module
+      const ok = A.ok;
 
-		  let a = A.of (1, 2, 3);
-		  ok  (a instanceof Array);
+		  let a = A (1, 2, 3);
+		  ok (a instanceof Array);
 		  ok (a, [1, 2, 3]);
 
       ok (a.end);
@@ -104,7 +107,7 @@ function _arsub (   )
 
  let x = 0;
  let y = 0;
- let obAndState = A.of ( {name: 'pieceA'}, {x, y}) ;
+ let obAndState = A ( {name: 'pieceA'}, {x, y}) ;
 
  let  nextPosition
  = obAndState.monad (left)
@@ -162,6 +165,7 @@ function down (e, i, a)
 } // end test()
 
 
+
     eq (a2)
 		{ try
 			{ ok (this, a2);
@@ -169,10 +173,6 @@ function down (e, i, a)
 			{ return false;
 			}
 			return true;
-		}
-
-    of  (...args)
-		{ return Arsub.of (...args);
 		}
 
     size ()
@@ -242,8 +242,12 @@ function down (e, i, a)
 		{ return this.monad(funk);
 		}
 
+    of  (...args)
+		{ return Arsub.of (...args);
+		}
+
 		static init()
-		{ this.ok = ok; // others may want to use it too
+		{ this.A.ok = ok; // others may want to use it too
 		  this.test();
 		  return this;
 		}

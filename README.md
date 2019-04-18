@@ -1,4 +1,4 @@
-# arsub 0.0.6
+# arsub 0.0.8
 
 A subclass of Array adding
 a few useful methods.
@@ -21,15 +21,24 @@ a few useful methods.
 https://twitter.com/ClassCloudLLC
    
    
-#### 0. MOTIVATING EXAMPLE
+#### 0. MOTIVATING EXAMPLES
 
     const A   = require ("arsub");
-    let a     = A.of (1,2,3,99);
+    let a     = A (1,2,3,99);
+
     let last  = a.end();
     A.ok (last, 99);
     // no more clumsy a[a.length-1]
     // every time you need to get
     // the last element of an array.
+
+    ok (a.eq ([1,2,3,99]) === true );
+    ok (a.eq ([1,2,3])    === false);
+    // array equality
+
+
+
+
 
 
 #### 1. INSTALLATION
@@ -65,9 +74,8 @@ FireFox and Chrome.
 ##### 3.1 Array-subclass require(arsub)
 
        const A  = require ("arsub");
-       // You can use it like Array so call it 'A'.
+       let a     = A (1,2,3,99);
 
-       let a     = A.of (1,2,3,99);
        let last  = a.end();
        A.ok (last, 99);
 
@@ -75,7 +83,7 @@ FireFox and Chrome.
        // standard array into an Arsub -array:
 
        let aStd  = [1,2,3];
-       let a2     = A.of (...aStd);
+       let a2     = A (...aStd);
        A.ok (a2.end(), 3);
 
        // Sticking to arsubs:
@@ -85,9 +93,6 @@ FireFox and Chrome.
        // hjas all its extra methods
        // like .end():
        A.ok (a3.end(), 3);
-
-
-
 
 
 
