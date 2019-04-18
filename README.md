@@ -1,4 +1,4 @@
-# A2 0.0.1
+# arsub 0.0.1
 
 A subclass of Array adding
 few useful methods.
@@ -6,7 +6,7 @@ few useful methods.
 
 ##### USAGE:
 
-    let A2  = require ("a2");
+    let A2  = require ("arsub");
         
     let a2 = A2.of(1,2,3);
     a2.wof()
@@ -30,12 +30,12 @@ https://twitter.com/ClassCloudLLC
 
 ##### A) With Node.js
 
-    let A2  = require ("a2");
+    let A2  = require ("arsub");
 
 ##### B) With  browser
 
 
-    <script src="a2.js"></script>
+    <script src="arsub.js"></script>
     <script> let A2  = A2;
     </script>
 
