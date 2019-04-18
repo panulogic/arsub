@@ -5,6 +5,7 @@ For information about future releases
 follow https://twitter.com/ClassCloudLLC.
 
 ######
+##### v. 0.0.9: Better docs
 ##### v. 0.0.8: Simpler way to create arrays
 
      let a = A (1,2,3,99);

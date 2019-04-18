@@ -1,4 +1,4 @@
-# arsub 0.0.8
+# arsub 0.0.9
 
 A subclass of Array adding
 a few useful methods.
@@ -8,7 +8,7 @@ a few useful methods.
 
     let A  = require ("arsub");
         
-    let a = A.of(1,2,3);
+    let a = A(1,2,3);
     a.end();
     a.wof();
     a.wol();
