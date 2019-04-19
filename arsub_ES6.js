@@ -1,3 +1,8 @@
+
+
+let es6Export  =  _arsub().A ;
+export default es6Export;
+
 /**
    Copyright 2019 Class Cloud LLC. All Rights Reserved.
 */

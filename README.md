@@ -1,4 +1,4 @@
-# arsub 0.0.9
+# arsub 0.0.10
 
 A subclass of Array adding
 a few useful methods.
@@ -25,17 +25,15 @@ https://twitter.com/ClassCloudLLC
 
     const A   = require ("arsub");
     let a     = A (1,2,3,99);
+    let ok    = A.ok;
 
     let last  = a.end();
-    A.ok (last, 99);
+    ok (last, 99);
     // no more clumsy a[a.length-1]
-    // every time you need to get
-    // the last element of an array.
 
     ok (a.eq ([1,2,3,99]) === true );
     ok (a.eq ([1,2,3])    === false);
     // array equality
-
 
 
 
@@ -54,17 +52,23 @@ https://twitter.com/ClassCloudLLC
 
 ##### B) With  browser
 
-Not quite there yet
+    <script type="module">
 
-    <script src="arsub.js"></script>
-    <script> let A2  = A2;
+     import A from './arsub_es6.js';
+     let a = A (1,2,3);
+     A.ok (a, [1,2,3]);
+
     </script>
 
+Open the file
+ **./test_browser.html**  in your
+ browser to test-run the above.
+ Use the above as example for
+ how to import  the ES6-module
+  **arsub_es6.js** to your own
+  browser-side html- or js-files.
 
 
-SEE: **test_browser.html** which does the
-above. To check whether it runs on your browser
-open  **test_browser.html** in it. 
 
 Seems to work on latest versions of Edge,
 FireFox and Chrome.

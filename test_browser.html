@@ -25,24 +25,77 @@ body
 { font-family: Verdana;
 }
 </style>
-<script src="cisf.js"></script>
-
-<script type="text/javascript">
 
 
+<script type="module">
+import A from './arsub_es6.js';
+let a  = A (1, 2, 55);
+let ok = A.ok;
+ok ( a.end(), 55 );
+ok ( a, [1,2,55] );
+ok ( a.eq ([1,2,55]) );
 
-testA2 ();
-function testA2 ()
-{
 
-}
+setTimeout
+( ()=> document.body.innerHTML =
+ `<h3 style="color:Black;">
+./arsub_es6.js &nbsp;  v. ${A.version()}
+<p> was loaded
+<p> meaning its tests like these:
+<pre>
+import A from './arsub_es6.js';
+let a  = A (1, 2, 55);
+let ok = A.ok;
+ok ( a.end(), 55 );
+ok ( a, [1,2,55] );
+ok ( a.eq ([1,2,55]) );
 
+</pre>
+ran successfully.
+</h3>
+For information about new releases
+or to report an issue, follow:
+<p><b>
+<a href="https://twitter.com/ClassCloudLLC"
+   style="color:#db0000"
+   target="ClassCloud"
+>https://twitter.com/ClassCloudLLC</a></b>
+<p>
 
+`
+, 5000
+);
+
+// The tests are run when the
+// class Arsub is loaded, its static
+// method test() is executed by its
+// static method init() a call to which
+// is added at the end of its class-definition
+// in the file defining it.
 
 </script>
 
+
+
 </head>
-<body>
- ... testing ....
+<body >
+ ... testing  arsub/test_browser.html ....
+ <p style="color:Red;">
+ If this text does not get replaced by a
+  <br> message telling  <b>arsub_es6.js</b> was loaded
+ <br> and  tests ran successfully  then there
+ <br> was some problem loading arsub_es6.js.
+ <p>
+  Use the browser dev-tools <b>console</b> to
+  <br>   see what could   be  the problem.
+
+ <p>  arsub_es6.js will not run on older browsers
+ <br> only on ES6 -capable ones.
+ <p>
+  Also note you typically can not load
+ <br>ES6 modules  from the file-system
+ <br> due to security reasons,  you need to
+ <br>serve this test-page from a server.
 </body>
 </html>
+

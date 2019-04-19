@@ -1,11 +1,14 @@
-# A2.js release notes
+# arsub.js release notes
 
 
 For information about future releases
 follow https://twitter.com/ClassCloudLLC.
 
 ######
+##### v. 0.0.10: ./arsub_es6.js can be loaded as an ES6-module to browsers
+
 ##### v. 0.0.9: Better docs
+
 ##### v. 0.0.8: Simpler way to create arrays
 
      let a = A (1,2,3,99);
