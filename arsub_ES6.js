@@ -11,7 +11,7 @@ export default es6Export;
 
 
 if (typeof module !== "undefined" &&
-    typeof module.exports !== "object"
+    typeof module.exports === "object"
 )
 { let nodeJsExport  =_arsub().A;
   module.exports = nodeJsExport;
@@ -24,7 +24,7 @@ function _arsub (   )
   return class Arsub extends Array
 	{
 	  static version ()
-		{ return '0.0.10';
+		{ return '0.0.11';
 		}
 
     static A (...args)

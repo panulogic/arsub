@@ -5,6 +5,8 @@ For information about future releases
 follow https://twitter.com/ClassCloudLLC.
 
 ######
+##### v. 0.0.11:  Fixed a bug caused on the server-version by the browser-version
+
 ##### v. 0.0.10: ./arsub_es6.js can be loaded as an ES6-module to browsers
 
 ##### v. 0.0.9: Better docs
