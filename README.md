@@ -1,19 +1,21 @@
-# arsub 0.1.0
+# arsub 0.1.1
 
-A subclass of Array adding
-a few useful methods.
+A subclass of Array adding a few useful methods.
  
 
 ##### USAGE:
 
     let A  = require ("arsub");
-        
-    let a = A(1,2,3);
-    a.end();
-    a.wof();
-    a.wol();
+    let ok = A.ok;
+    // ok (a,b) means a and b must be equal,
+    // else an error is thrown. ok() works
+    // also with Arrays and Objects, recursively
 
-    a.monad (e=>[e]);
+    let a = A(1, 2, 3, 4, 5);
+    ok (a.size(), 5 );
+
+    // more examples below
+
 
 
 ##### RELEASE-ANNOUNCEMENTS:
@@ -23,19 +25,21 @@ https://twitter.com/ClassCloudLLC
    
 #### 0. MOTIVATING EXAMPLES
 
-    const A   = require ("arsub");
-    let a     = A (1,2,3,99);
-    let ok    = A.ok;
+    let a = A(1, 2, 3, 4, 5);
 
-    let last  = a.end();
-    ok (last, 99);
-    // no more clumsy a[a.length-1]
+    ok (a.first ()  ,  5 );
+    ok (a.first (1) , [5]);
+    ok (a.first (2) , [4. 5]);
+    ok (a.first (-1), [2,3,4,5]);
+    ok (a.first (-2), [3,4,5]);
 
-    ok (a.eq ([1,2,3,99]) === true );
-    ok (a.eq ([1,2,3])    === false);
-    // array equality
+    ok (a.last ()  ,  5 );
+    ok (a.last (1) , [5]);
+    ok (a.last (2) , [4. 5]);
+    ok (a.last (-1), [2,3,4,5]);
+    ok (a.last (-2), [3,4,5]);
 
-
+    // plus more, read the static method trest():
 
 
 
@@ -60,43 +64,46 @@ https://twitter.com/ClassCloudLLC
 
     </script>
 
-Open the file
- **./test_browser.html**  in your
- browser to test-run the above.
- Use the above as example for
- how to import  the ES6-module
-  **arsub_es6.js** to your own
-  browser-side html- or js-files.
+Open the file **./test_browser.html**  in your
+browser to test-run the above.
 
-
+Use the above as example for
+how to import  the ES6-module
+**arsub_es6.js** to your own
+browser-side html- or js-files.
 
 Seems to work on latest versions of Edge,
 FireFox and Chrome.
 
 #### 3. API  
 
-##### 3.1 Array-subclass require(arsub)
+##### 3.1 Array-subclass Arsub
 
        const A  = require ("arsub");
-       let a     = A (1,2,3,99);
+       let ok   = A.ok;
+       let a    = A (1,2,3); // Immutable
 
-       let last  = a.end();
-       A.ok (last, 99);
+       ok (a. size    ); // The length
+       ok (a. first   ); // First elements
+       ok (a. last    ); // Last elements
+       ok (a. addFirst); // Add new elements to the beginning
+       ok (a. addLast ); // Add new elements to the end
+       ok (a. copy    ); // (shallow) copy with overriding or new elements
 
-       // Transforming an existing
-       // standard array into an Arsub -array:
+       ok (a. get     ); // Get element from sparse array
+       ok (a. put     ); // Put element to sparse array
+       ok (a. eq      ); // Test array eq   uality recursively
 
-       let aStd  = [1,2,3];
-       let a2     = A (...aStd);
-       A.ok (a2.end(), 3);
+       ok (a. monad   ); // THe monad bind-function.
+       ok (a. flat    ); // Same as monad
+       ok (a. of      ); // Create new instancve with given elements
 
-       // Sticking to arsubs:
-
-       let a3 = a2.slice(0);
-       // a3 is also an arsub so it
-       // hjas all its extra methods
-       // like .end():
-       A.ok (a3.end(), 3);
+       // Above just lists all API-methods showing
+       // by calling ok() that the above methods
+       // do exist.
+       //
+       // Read the source of the static method
+       // test() to see how they can be used.
 
 
 
@@ -115,8 +122,7 @@ FireFox and Chrome.
 
 Tests are coded in and executed by
 the static test() -method of the
-class 'Arsub' that is the exports of
-arsub.js.
+class 'Arsub' defined in arsub.js.
 
 When the class is defined those
 tests are run. That happens
@@ -124,7 +130,7 @@ only once, when you load the module,
 not at runtime. Unless you explicitly
 call Arsub.test() again.
 
-See the source Luke!
+See the source Luke.
    
 #### 5. What does 'arsub' mean?
 It means Array-subclass.

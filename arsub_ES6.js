@@ -19,13 +19,13 @@ function _arsub (   )
   const SYS = Symbol ('SYS');
   return class Arsub extends Array
 	{
+static version ()
+{ return '0.1.1';
+}
 constructor (...args)
 { let a  = super (...args);
 	a[SYS] = {};
 	return a;
-}
-static version ()
-{ return '0.1.0';
 }
 static A (...args)       // this is what gets exported
 { return Arsub.of (...args);
@@ -54,176 +54,6 @@ static mutableOf (...elems)
 { let a = super.of(...elems);
 	return a;
 }
-of  (...args)
-{ return Arsub.of (...args);
-}
-get (...ixs)
-{ let v;
-  let i = ixs [0];
-  v = this[i];
-  if (ixs.length === 1)
-	{ return v;
-	}
-  let ixs2 =  ixs.slice (1);
-  if (v === undefined)
-	{ return undefined;
-	  // if we encounter undefined element
-	  // even if ixes remain that is ok because
-	  // this is a SPARSE Array. But
-	  // IF the element does exist it must be
-	  // something which understands get() like
-	  // any Arsub does.
-	}
-  if  (v.get  && typeof v.get === "function" )
-	{ return v.get (...ixs2);
-	} else
-	{ throw new Error
-	  ( `trying to call get() on an element 
-${v}
-which does not have get() as method.
-In other words you called get()
-with too many arguments, for this
-location in the multi-D array whose
-value is not undefined.
-`	  );
-	}
-}
-put (v, ...ixs)
-{ verifyArgs (v, ixs);
-  if (ixs.length === 1)
-	{ let c = Arsub.mutableOf( ...this ) ;  //.copy(); would make it immutable too early
-	  if (typeof v === "object" || typeof v === "function" )
-		{ if (v.constructor !== Arsub)
-		  { v = freezeOb (v);
-			}
-		}
-    c [ixs[0]] = v;
-    Object.freeze(c);
-    return c;  // Yes now this would crash:  c[1] = 888;
-	}
-  let [ix, ... ixsRest] = ixs;
-  let elem = this.get(ix);
-  if (elem === undefined )
-	{ elem = this.of();
-	}
-  verifyIsPuttable (elem); // would throw if elem is primitive or null
-  let newElem = elem.put (v, ...ixsRest);
-  let newMe   = this.put (newElem, ix);
-  return newMe;
-	function verifyArgs (v, ixs)
-	{  if (ixs.length === 0)
-		{ throw new Error(`put() called without 2nd argument`)
-		}
-	}
-  function verifyIsPuttable (elem)
-	{ if (  elem.put && typeof elem.put === "function")
-		{ return;
-		}
-		throw new Error(`
-Trying to put() a property to an 
-element ${elem} of arsub which 
-does not have  the method put() \n`);
-	}
-}
-copy (newElems = {})
-{
-  // You can give copy a {} as argument
-  // to populate arbitrary toplevel
-  // sparse elements of the array.
-  // Se for instacne the tests where we do:
-  //  a3.copy ({0:77, 2:[[5]] })
-  let copy = Arsub.mutableOf()  ;  // p.clone();
-	this.forEach
-	( (e, i) =>
-		{ copy[i] = e;
-		}
-	);
-	for (let p in newElems)
-	{ let ne = newElems[p];
-	  if (ne instanceof Array && ! (ne instanceof Arsub))
-		{ ne = Arsub.of (...ne);
-		}
-	  copy[p] = ne;
-	};
-	Object.freeze (copy);
-	return copy;
-}
-end (i=0)  // no arg means return the last element
-{ ok (i >= 0)
-	return this [this.length - (1 + i)];
-}
-eq (a2)
-{ return  okBasic (this, a2);
-}
-addFirst (... newElems)
-{ return this.of(...newElems, ...this);
-}
-addLast (... newElems)
-{ return this.of(  ...this, ...newElems );
-}
-dropFirst  (howMany=1)
-{
-	if (howMany >= this.length )
-	{  return [];
-	}
-	if (howMany >= 0)
-	{  return this.slice (howMany);
-	}
-	let firstIxToKeep =  this.length + howMany;
-	return this.slice(firstIxToKeep)
-}
-dropLast  (howMany=1)
-{
-	if (howMany >= this.length )
-	{ return [];
-	}
-	let lastIx       = this.length - 1;
-	let lastIxToKeep = lastIx - howMany;
-	if (howMany >= 0)
-	{  return this.slice(0, lastIxToKeep + 1); // how slie works
-	}
-	// Negative howMany  means  drop  everything
-	// except the first -1 * howMany .
-	lastIxToKeep =  (-1 * howMany) - 1 ; // howMany is < 0
-	return this.slice (0, lastIxToKeep + 1 );
-}
-[Symbol.toPrimitive] (hint)
-{ return `Arsub.of(${this[0]}, ${this[1]}, ...)`
-}
-flat (funk)
-{ return this.monad(funk);
-}
-size ()
-{ let p = this[SYS].parent;
-	let mySize = this.length;
-	if (! p)
-	{ return mySize;
-	}
-	let pSize = p.size();
-	if (pSize > mySize)
-	{ return pSize;
-	}
-	return mySize;
-}
-monad (funk)
-{ let result     = [];
-	let elemArrays = this.map (funk);
-	for (let i=0; i < elemArrays.length; i++)
-	{ let elemArray = elemArrays[i];
-		if (elemArray === undefined)
-		{ continue;
-		}
-		if (! (elemArray instanceof Array ))
-		{  elemArray = Arsub.of(elemArray);
-		}
-		for (let j=0; j < elemArray.length; j++)
-		{ result.push (elemArray[j]);
-		}
-	}
-	let see = result[-1];
-	let result2 = Arsub.of (...result);
-	return result2;
-}
 static test ()
 {
 const A = this.A;
@@ -232,6 +62,18 @@ const fails = A.fails;
 let a = A (1, 2, 3);
 ok (a instanceof Array);
 ok (a, [1, 2, 3]);
+ok (a. size     );
+ok (a. first    );
+ok (a. last     );
+ok (a. addFirst );
+ok (a. addLast  );
+ok (a. copy     );
+ok (a. get      );
+ok (a. put      );
+ok (a. eq       );
+ok (a. monad    );
+ok (a. flat     );
+ok (a. of       );
 //  put() returns an immutable copy:.
 let a2 = a.put (10, 0);
 ok (a2,  [10, 2, 3])
@@ -292,54 +134,55 @@ ob [SYS].privateU = 123;  // does not fail because SYS is a symbol
 // ----------------------------------
 	a = A (1, 2, 3);
 	ok (a, [1, 2, 3]);
-	ok (a.end);
-	ok (a.slice(0).end(), 3);
-	// When you create new array from an
-	// Arsub instance with methods like slice()
-	// inherited from Array the result is still
-	// an instance of the Array subclass Arsub,
-	// so it has its extra methods so you can keep on
-	// using those.
 	let see4 = a + "";
 	// a.push (77);
 	// a.pop();
 	// pop() and push() cause error because arsubs are IMMUTABLE
 	// Instead you can do the same like this:
 	ok (a, [1, 2, 3]);
-	ok (a.addLast (4).addLast(5) , [1,2,3,4,5] );
-	ok (a.addFirst(4).addFirst(5), [5,4,1,2,3] );
-	// or simpler:
 	ok (a.addFirst(4, 5), [4,5,1,2,3] );
 	ok (a.addLast (4, 5), [1,2,3,4,5] );
-	ok (a.size(), 3)
-	ok (a.end() , 3);  // default arg is 0 meaning return the end-element
-	ok (a.end(0), 3);
-	ok (a.end(1), 2);        // 1 means return the one before last
-	ok (a.end(2), 1)         // 2 means return the 2nd before last
-	ok (a.end(3), undefined) // 3 steps left is index -1 whose value is undefined
-	ok (a.dropFirst (0), [1,2,3])   ; // Drop zero first elements.
-	ok (a.dropFirst (1), [2,3])     ; // Without one first element.
-	ok (a.dropFirst () , [2,3])     ; // Same. 1 is the default arg-value.
-	ok (a.dropFirst (2), [3])       ; // without first two
-	ok (a.dropFirst (3), [])        ;
-	ok (a.dropFirst (4), [])        ;
-	ok (a.dropFirst (-1), [3])      ; // all except last 1
-	ok (a.dropFirst (-2), [2,3])    ; // all exceptlast 2
-	ok (a.dropFirst (-3), [1,2,3])  ; // drop all except last 3 == keep all of them
-	ok (a.dropFirst (-55), [1,2,3]) ; // drop all except last 55 == keep all of them
-	ok (a.dropLast (0), [1,2,3]) ; // Drop zero last elements. Means return a shallow copy
-	ok (a.dropLast (1), [1,2])   ; // Drop one elment from the end.
-	ok (a.dropLast ( ), [1,2])   ; // Same. 1 is the default but value of the argument.
-	ok (a.dropLast (2), [1])     ;
-	ok (a.dropLast (3), [])      ;
-	ok (a.dropLast (4), [])      ;
-	ok (a.dropLast (-1), [1])    ; // drop all but FIRST 1
-	ok (a.dropLast (-2), [1,2])  ; // drop all but FIRST 2
-	ok (a.dropLast (-3), [1,2,3]); // drop all but FIRST 3 == drop nothing
-	ok (a.dropLast (-7), [1,2,3]); // drop all but FIRST 7 == drop nothing
+let a6 = A(1,2,3,4,5,6);
+ok (a6.first ()  , 1  ); // Without args return the first element
+ok (a6.first (1) , [1]); // With arguments always reurn an Array
+ok (a6.first (2) , [1,2]);
+ok (a6.first (-1), [1,2,3,4,5]);
+ok (a6.first (-2), [1,2,3,4]);
+ok (a6.first (-3), [1,2,3]);
+// Asking FIRST elements always returns
+// a list of elements that start form the beginning.
+// They are the "first" elements of the array.
+// If you ask for "first 5" you get the first
+// five elements.
+// Telling "how many" by giving a negative
+// number you are telling how many should be
+// REMOVED, not how many should be added.
+// But you are still asking to get some of
+// the "first elements" therefore the ones
+// that are rem oved are removed from the end.
+// SImilary asking for last() always gives a list
+// that ends with some last elements of the
+// recipient array:
+ok (a6.last ()  , 6    );
+ok (a6.last (1) , [6]  );
+ok (a6.last (2) , [5,6]);
+// Like with first() negative arguments
+// tells ho many elements to remove but
+// because you are asking for (some) of the
+// LAST elements, the elements to remove
+// are removed from beginning:
+ok (a6.last (-1), [2,3,4,5,6]);
+ok (a6.last (-2), [3,4,5,6]);
+ok (a6.last (-3), [4,5,6]);
+// Edge-cases:
+ok (a6.first (22), a6);  // Can't gete more than there is
+ok (a6.first (0) , []);  // Asking for zero elements gives you that.
+ok (a6.last  (22), a6) ;
+ok (a6.last  (0) , [] );
+// ---------------------------------------
+	ok (a.size(), 3);
 	ok (a.eq ([1,2,3]));
 	ok (a.eq ([1,2,3])  === true );
-	let b = a.eq ([1,2,55]);
 	ok (! a.eq ([1,2,55])  );
 // You can create a new Arsub iby asking it
 // from an exiting instance, no need
@@ -419,6 +262,182 @@ static init()
 	Object.freeze (this);
 	this.test();
 	return this;
+}
+put (v, ...ixs)
+{ verifyArgs (v, ixs);
+  if (ixs.length === 1)
+	{ let c = Arsub.mutableOf( ...this ) ;  //.copy(); would make it immutable too early
+	  if (typeof v === "object" || typeof v === "function" )
+		{ if (v.constructor !== Arsub)
+		  { v = freezeOb (v);
+			}
+		}
+    c [ixs[0]] = v;
+    Object.freeze(c);
+    return c;  // Yes now this would crash:  c[1] = 888;
+	}
+  let [ix, ... ixsRest] = ixs;
+  let elem = this.get(ix);
+  if (elem === undefined )
+	{ elem = this.of();
+	}
+  verifyIsPuttable (elem); // would throw if elem is primitive or null
+  let newElem = elem.put (v, ...ixsRest);
+  let newMe   = this.put (newElem, ix);
+  return newMe;
+	function verifyArgs (v, ixs)
+	{  if (ixs.length === 0)
+		{ throw new Error(`put() called without 2nd argument`)
+		}
+	}
+  function verifyIsPuttable (elem)
+	{ if (  elem.put && typeof elem.put === "function")
+		{ return;
+		}
+		throw new Error(`
+Trying to put() a property to an 
+element ${elem} of arsub which 
+does not have  the method put() \n`);
+	}
+}
+of  (...args)
+{ return Arsub.of (...args);
+}
+get (...ixs)
+{ let v;
+  let i = ixs [0];
+  v = this[i];
+  if (ixs.length === 1)
+	{ return v;
+	}
+  let ixs2 =  ixs.slice (1);
+  if (v === undefined)
+	{ return undefined;
+	  // if we encounter undefined element
+	  // even if ixes remain that is ok because
+	  // this is a SPARSE Array. But
+	  // IF the element does exist it must be
+	  // something which understands get() like
+	  // any Arsub does.
+	}
+  if  (v.get  && typeof v.get === "function" )
+	{ return v.get (...ixs2);
+	} else
+	{ throw new Error
+	  ( `trying to call get() on an element 
+${v}
+which does not have get() as method.
+In other words you called get()
+with too many arguments, for this
+location in the multi-D array whose
+value is not undefined.
+`	  );
+	}
+}
+copy (newElems = {})
+{
+  // You can give copy a {} as argument
+  // to populate arbitrary toplevel
+  // sparse elements of the array.
+  // Se for instacne the tests where we do:
+  //  a3.copy ({0:77, 2:[[5]] })
+  let copy = Arsub.mutableOf()  ;  // p.clone();
+	this.forEach
+	( (e, i) =>
+		{ copy[i] = e;
+		}
+	);
+	for (let p in newElems)
+	{ let ne = newElems[p];
+	  if (ne instanceof Array && ! (ne instanceof Arsub))
+		{ ne = Arsub.of (...ne);
+		}
+	  copy[p] = ne;
+	};
+	Object.freeze (copy);
+	return copy;
+}
+eq (a2)
+{ return  okBasic (this, a2);
+}
+addFirst (... newElems)
+{ return this.of(...newElems, ...this);
+}
+addLast (... newElems)
+{ return this.of(  ...this, ...newElems );
+}
+first  (...args)
+{
+  if (! args.length)
+	{ return this[0];
+	}
+	let howMany = args[0];
+	if (howMany >= this.length )
+	{ return  this.slice(0);
+	}
+	if (howMany >= 0)
+	{  return this.slice (0, howMany);
+	}
+	let firstIxToExclude =  this.length + howMany;
+	// if howMany is 0 then this.length is the
+	// firstIxToExclude meaning all of the array
+	// is copied. So if howMany is 1 that means
+	// one more is dropped from the end and so on.
+	return this.slice(0, firstIxToExclude)
+}
+last  (...args)
+{
+  if (! args.length)
+	{ return this[this.length-1];
+	}
+	let howMany = args[0];
+  if (howMany >= this.length )
+	{ return  this.slice(0);
+	}
+	if (howMany >= 0)
+	{ return this.slice
+	  (this.length - howMany, this.length);
+	}
+	return this.slice(-1 * howMany, this.length )
+  // if howMany == -3 it means give the the last
+  // elements MINUS the 3 at the beginnning.
+}
+[Symbol.toPrimitive] (hint)
+{ return `Arsub.of(${this[0]}, ${this[1]}, ...)`
+}
+flat (funk)
+{ return this.monad(funk);
+}
+size ()
+{ let p = this[SYS].parent;
+	let mySize = this.length;
+	if (! p)
+	{ return mySize;
+	}
+	let pSize = p.size();
+	if (pSize > mySize)
+	{ return pSize;
+	}
+	return mySize;
+}
+monad (funk)
+{ let result     = [];
+	let elemArrays = this.map (funk);
+	for (let i=0; i < elemArrays.length; i++)
+	{ let elemArray = elemArrays[i];
+		if (elemArray === undefined)
+		{ continue;
+		}
+		if (! (elemArray instanceof Array ))
+		{  elemArray = Arsub.of(elemArray);
+		}
+		for (let j=0; j < elemArray.length; j++)
+		{ result.push (elemArray[j]);
+		}
+	}
+	let see = result[-1];
+	let result2 = Arsub.of (...result);
+	return result2;
 }
 } . init();
 function ok (...args)

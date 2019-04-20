@@ -5,6 +5,10 @@ For information about future releases
 follow https://twitter.com/ClassCloudLLC.
 
 ######
+
+##### v. 0.1.1:  first() and last() with positive
+                 and negative args and with no arg
+
 ##### v. 0.1.0: Immutability enforced, sparse multi-D arrays
 ##### v. 0.0.11:  Fixed a bug caused on the server-version by the browser-version
 
