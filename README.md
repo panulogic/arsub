@@ -1,4 +1,4 @@
-# arsub 0.1.1
+# arsub 0.1.2
 
 A subclass of Array adding a few useful methods.
  
@@ -39,7 +39,7 @@ https://twitter.com/ClassCloudLLC
     ok (a.last (-1), [2,3,4,5]);
     ok (a.last (-2), [3,4,5]);
 
-    // plus more, read the static method trest():
+    // plus more, read the static method test():
 
 
 
@@ -92,15 +92,16 @@ FireFox and Chrome.
 
        ok (a. get     ); // Get element from sparse array
        ok (a. put     ); // Put element to sparse array
-       ok (a. eq      ); // Test array eq   uality recursively
+       ok (a. eq      ); // Test array equality recursively
 
-       ok (a. monad   ); // THe monad bind-function.
+       ok (a. monad   ); // The monad bind-function.
        ok (a. flat    ); // Same as monad
-       ok (a. of      ); // Create new instancve with given elements
+       ok (a. of      ); // Create new instance with given elements
 
        // Above just lists all API-methods showing
        // by calling ok() that the above methods
-       // do exist.
+       // do exist. Arsub is a subclass of Array so
+       // in imnherits all Array-methods as well.
        //
        // Read the source of the static method
        // test() to see how they can be used.
@@ -111,7 +112,7 @@ FireFox and Chrome.
 
     let ok = A.ok;
 
-    // The utility function ok()
+    // The utility function ok() is
     // used in the tests, piggy-backing
     // with arsub.js since it is so useful.
     // See the source-code it is not long

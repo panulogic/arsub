@@ -20,7 +20,7 @@ function _arsub (   )
   return class Arsub extends Array
 	{
 static version ()
-{ return '0.1.1';
+{ return '0.1.2';
 }
 constructor (...args)
 { let a  = super (...args);
