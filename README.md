@@ -1,4 +1,4 @@
-# arsub 0.2.0
+# arsub 0.2.1
 
 A subclass of Array adding a few useful methods.
  
@@ -95,7 +95,9 @@ FireFox and Chrome.
        ok (a. eq      ); // Test array equality recursively
 
        ok (a. monad   ); // The monad bind-function.
-       ok (a. flat    ); // Same as monad
+       ok (a. m       ); // Same as monad
+       ok (a. _       ); // Monad-terminal
+
        ok (a. of      ); // Create new instance with given elements
 
        // Above just lists all API-methods showing

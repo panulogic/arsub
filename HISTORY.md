@@ -5,6 +5,7 @@ For information about future releases
 follow https://twitter.com/ClassCloudLLC.
 
 ######
+##### v. 0.2.1:  Updated README.md, method 'flat' was renamed 'm'.
 ##### v. 0.2.0:  Better monad-API, external test.js
 ##### v. 0.1.2:  Better README.md
 ##### v. 0.1.1:  first() and last() with positive and negative args and with no arg.

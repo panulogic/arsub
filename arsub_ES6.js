@@ -19,7 +19,7 @@ function _Monad (   )
   return class Monad extends Array
 	{
 		static version ()
-		{ return '0.2.0';
+		{ return '0.2.1';
 		}
 static test ()
 {
