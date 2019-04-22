@@ -1,4 +1,4 @@
-# arsub 0.1.2
+# arsub 0.2.0
 
 A subclass of Array adding a few useful methods.
  
