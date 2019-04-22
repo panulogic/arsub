@@ -19,7 +19,7 @@ function _Monad (   )
   return class Monad extends Array
 	{
 		static version ()
-		{ return '0.2.1';
+		{ return '0.2.2';
 		}
 static test ()
 {
@@ -266,7 +266,6 @@ if (true)
 					]
 				) ;
 		 console.log (`terminalY:\n ${a.join(', ')} `) ;
-		 debugger
 	 }
 	 function syncF1  (e)
 	 {
@@ -277,7 +276,6 @@ if (true)
 	 }
 	 function terminalX (... a)
 	 {
-debugger // my caller should remove my timeout
 		 ok (a, [113, 213, 313]) ;
 		 console.log (`terminalX:\n ${a.join(', ')} \n`) ;
      // above ok holds only when used as part of
@@ -289,7 +287,6 @@ debugger // my caller should remove my timeout
 		 // their result then pipeline will not reach
 		 // its end and this test would never get
 		 // executed.
-		 debugger
 	 }
 	}
 } // end test()
@@ -397,8 +394,7 @@ _ (MonadF, timeout)
 	  if (timeout !== undefined)
 		{ timer = setTimeout
 			( () =>
-				{ debugger
-				  throw new Error
+				{ throw new Error
 				  (`\nComputation did NOT reach function "${MonadF.name}()" 
 within ${timeout} ms. \n`
           );
@@ -411,13 +407,7 @@ within ${timeout} ms. \n`
 	  return resultMonad;
 	}
   if (timer)
-	{
-	  clearTimeout (timer);
-	  // log (`CLEARED timeout at \n${new Date().getTime()} `)
-	 debugger
-    // stopped it. No need to remove it from
-    // anywhere wince it was stored in todos-list
-    // and that entry was removed before calling here.
+	{ clearTimeout (timer);
 	}
 	return MonadF ( ... self) ;
 }
@@ -637,8 +627,7 @@ static init()
 	{ let [a, b] = args;
 		let bool = okBasic (...args )
 		if (! bool)
-		{ debugger
-			throw new Error ('Monad.ok() failed');
+		{ throw new Error ('Monad.ok() failed');
 		}
 		return ok;
 	}
@@ -695,10 +684,9 @@ static init()
 		{ return;
 		}
 	  if (level > 99)
-		{ debugger
-			throw new Error
+		{ throw new Error
 			( `
-Eternal Regression in Monad::freezeOb()
+Possible Eternal Regression in Monad::freezeOb()
 probably caused by a circular data-structure.
 `    );
 		}
@@ -706,7 +694,7 @@ probably caused by a circular data-structure.
 		let nextLevel = level + 1;
     for (let p in ob)
 		{ if (p === SYS)
-		  { debugger
+		  { // never here
 		  }
 		  freezeOb ( ob [p], nextLevel );
 		}
