@@ -17,7 +17,7 @@ function _Monad (   )
 { const SYS = Symbol ('SYS');
   return class Monad extends Array
 	{ static version ()
-		{ return '0.3.0';
+		{ return '0.3.1';
 		}
 static test ()
 {
@@ -251,18 +251,15 @@ let obAndState2 = obAndState
 . _ ()        // _() without argument returns the RECIPIENT
 obAndState2 . _
 (  (ob, location) =>
-	 { debugger
-	    ok ( location, {x:0, y:-1} );
+	 { ok ( location, {x:0, y:-1} );
 	 }
 );
-debugger
 let v = this.version();
 console.log (`SUCCESS arsub.js v.${v} tests have run`);
 return v;
 function left (e, o, i, a)
 { if ( i )
-  {  debugger
-     return o ( Object.assign ({}, e, {x: e.x - 1}));
+  {  return o ( Object.assign ({}, e, {x: e.x - 1}));
   }
   this (e);
 }

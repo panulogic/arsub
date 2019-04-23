@@ -5,6 +5,7 @@ For information about future releases
 follow https://twitter.com/ClassCloudLLC.
 
 ######
+##### v. 0.3.1:  Cleaned up debugging statements
 ##### v. 0.3.0:  New type monad-arg function args: (e, o, i, a)
 ##### v. 0.2.2:  Cleaned up removed debugging statements
 ##### v. 0.2.1:  Updated README.md, method 'flat' was renamed 'm'
