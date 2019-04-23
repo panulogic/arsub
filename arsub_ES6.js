@@ -11,19 +11,21 @@ export default es6Export;
 if (typeof module !== "undefined" &&
     typeof module.exports === "object"
 )
-{  module.exports = _Monad().A;
+{  module.exports =   _Monad().A ;
 }
 function _Monad (   )
-{
-  const SYS = Symbol ('SYS');
+{ const SYS = Symbol ('SYS');
   return class Monad extends Array
-	{
-		static version ()
-		{ return '0.2.2';
+	{ static version ()
+		{ return '0.3.0';
 		}
 static test ()
 {
 const A     = this.A;
+const M     = this.A;
+// maybe you want to refer ot it as M(onad)
+// but it is an A(rray) so A is fine too.
+let UCE =  _UserClassExample (A); // tests itself
 const ok    = A.ok;
 const fails = A.fails;
 testAsyncMonad (A) ;
@@ -167,19 +169,76 @@ let b2 = a.of(  [1, [2, [3] ]]);
 // returns a NON-array  it is simply converted
 // to one containing the original result as its
 // only element.
-a3 = a.monad ( (e, i, a) => e + i );
+a3 = a.m (
+(e, o, i, a) =>
+ {
+  // with array functions you can not use this as
+  // the out-channel because there is no this
+  // so would it not be better to pass o as the
+  // 2nd arg after all? i and a are seldom used anyway
+		// return (e + i);
+		// yes this is better because measn also arrow functrions
+		// can be part of async pipelines.
+		o (e + i);
+							 });
 ok (a , [1,2,3]);
-ok (a3, [1,3,5]);
-a4 = a.monad (e=>[e]);
-ok (a4, [1,2,3]);
-let a5 = a.monad (e=>e);
-ok (a5, [1,2,3]);
-let a7 = a.monad (e=>e+e, e=>e*e);
-ok (a7, [2,4,9]);
+// results of _m() hide their data
+// so do results of _() why
+// basically to prevent you from returning
+// their data BUT you could always return the
+// whole monad. Calculation happens inside it.
+ok (a3, [null, null, null]);
+a3._ (  (...a) => ok (a, [1,3,5])) ;
+      // this function is a monad-instantioator
+      // a.k.a monad-funk. Whatever I return
+      // becomes the data of the monad return to
+      // caller of _().  If I return nothing
+      // then that data will be [].
+// if the above funk does not return anything
+// then result should be empty monad but if
+// it returns the data that it goet then result
+// should be amonad which carries but hjides that
+// data. User could pass in a monad-class as well
+// we would turn it into a monad.
+ok (A(1,2,3), [1,2,3]);
+// when you call the constructor A like above
+// it returns a monad whose data is public.
+//
+// This is because monad-constructorfunctions
+// like A() are a sYnchronous functions.
+//
+// But when you call m(f) or _(f) on it  those
+// methods coudl be ASYNC and therefore we hide
+// their data. You can only see  that by calling
+// their method m() passing as argument a function.
+// ._() can be called passing in a Monad-class
+// which creates its instances  in general
+// synchronously but not really if the monad to
+// which you send ._() is part of a pipeline
+// some of which steps are async. Therefore _()
+// must return a monad whose data is hidden.
+a4 = a.m
+( (e, o, i, a) =>
+ { let methodGiver = this;
+   let outChannel  = o;
+   return  [e] ;
+ });
+a4._ ( (...elems) =>
+			  { ok (elems, [1,2,3]);
+				}
+     );
+// See the diff between m() and _() above.
+// m(e) is called for each element separately.
+// _(...elems) is called with all of them
+// when they are ready.
+let a5 = a.m (e=>e);
+a5._( (...a) => ok (a, [1,2,3]));
+let a7 = a.m (e => e+e, e=>e*e);
+a7._ ( (... a7) => ok (a7, [2, 4, 9]) );
 let x = 0;
 let y = 0;
 let obAndState = A ( {name: 'pieceA'}, {x, y}) ;
-let  nextPosition = obAndState
+let obAndState2 = obAndState
 .m     (left)
 .m     (up)
 .m     (right)
@@ -190,41 +249,46 @@ let  nextPosition = obAndState
               // so far A is our only monad-class so we use it to test.
 . m (right)
 . _ ()        // _() without argument returns the RECIPIENT
-ok ( nextPosition [1], {x:0, y:-1} );
+obAndState2 . _
+(  (ob, location) =>
+	 { debugger
+	    ok ( location, {x:0, y:-1} );
+	 }
+);
+debugger
 let v = this.version();
 console.log (`SUCCESS arsub.js v.${v} tests have run`);
 return v;
-function left (e, i, a)
+function left (e, o, i, a)
+{ if ( i )
+  {  debugger
+     return o ( Object.assign ({}, e, {x: e.x - 1}));
+  }
+  this (e);
+}
+function right (e, o, i, a)
 {
-if ( i )   // i === 0 means the game-piece, 1 measn its state.
-{ let newState = Object.assign ({}, e, {x: e.x - 1});
-return  [newState];
+	if ( i )   // i === 0 means e is the game-piece, 1 means e is its state.
+	{ let newState = Object.assign ({}, e, {x: e.x + 1});
+		return o (newState);
+	}
+ this(e);
 }
-return [e];
-}
-function right (e, i, a)
+function up (e, o, i, a)
 {
-if ( i )   // i === 0 means e is the game-piece, 1 means e is its state.
-{ let newState = Object.assign ({}, e, {x: e.x + 1});
-return  [newState];
+	if ( i )   // i === 0 means e is the game-piece, 1 means e is its state.
+	{ let newState = Object.assign ({}, e, {y: e.y + 1});
+		return o (newState);
+	}
+	this(e);
 }
-return [e];
-}
-function up (e, i, a)
+function down (e, o, i, a)
 {
-if ( i )   // i === 0 means e is the game-piece, 1 means e is its state.
-{ let newState = Object.assign ({}, e, {y: e.y + 1});
-return  [newState];
-}
-return [e];
-}
-function down (e, i, a)
-{
-if ( i )   // i === 0 means e is the game-piece, 1 means e is its state.
-{  let newState = Object.assign ({}, e, {y: e.y - 1});
- return  [newState];
-}
-return [e];
+	if ( i )   // i === 0 means e is the game-piece, 1 means e is its state.
+	{ let newState = Object.assign ({}, e, {y: e.y - 1});
+		return  o(newState);
+	}
+  this(e);
 }
 function testAsyncMonad (M)
 {
@@ -232,18 +296,6 @@ function testAsyncMonad (M)
 	 asm
 	 .m (asyncF10, asyncF1)
 	 ._ (terminalY, 4); // 3);
-   // asyncF10() delays itself by 3 ms.
-   // if above is set to that it
-   // sometimes causes and sometimes
-   // does not the error message.
-   // With 4 above seems it  never happens.
-   // With 1 it seems it always happens on
-   // my machine. Note that if you start
-   // multiple async pipelines they can
-   // slow each other down.
-if (true)
-{  // return
-}
    asm        // [1, 2, 3]
 	 .m (asyncF10 )   // [10, 20, 30]
 	 .m (asyncF1  )   // [11, 21, 31]
@@ -251,11 +303,11 @@ if (true)
 	 .m ( syncF1  )   // [111, 211, 311]
 	 .m ( syncF2  )   // [113, 213, 313]
 	 ._ (terminalX,  40);
-	 function asyncF1  (e)
-	 { setTimeout ( () => this (e + 1) , 0);
+	 function asyncF1  (e, o)
+	 { setTimeout ( () => o (e + 1) , 0);
 	 }
-	 function asyncF10  (e)
-	 { setTimeout ( () => this (e*10) , 3);
+	 function asyncF10  (e, o)
+	 { setTimeout ( () => o  (e*10) , 3);
 	 }
 	 function terminalY (... a)
 	 {
@@ -267,29 +319,48 @@ if (true)
 				) ;
 		 console.log (`terminalY:\n ${a.join(', ')} `) ;
 	 }
-	 function syncF1  (e)
-	 {
-		 return  [ e + 1 ];
+	 function syncF1  (e, o)
+	 {  o (  e + 1  );
 	 }
-	 function syncF2  (e)
-	 { return  (e + 2);
+	 function syncF2  (e, o)
+	 { o  (e + 2);
 	 }
 	 function terminalX (... a)
 	 {
 		 ok (a, [113, 213, 313]) ;
 		 console.log (`terminalX:\n ${a.join(', ')} \n`) ;
-     // above ok holds only when used as part of
-		 // the above pipeline of course.
-		 // We can use ad hoc terminal-functions like
-		 // this to test results of async-functions.
-		 // But note if there is a bug in the async-
-		 // functions which causes them to never produce
-		 // their result then pipeline will not reach
-		 // its end and this test would never get
-		 // executed.
 	 }
 	}
 } // end test()
+static of (...elems)
+{
+	let elems2 = elems.map
+	( e =>
+		{ if (e instanceof Monad)
+			{ return e;
+			}
+			if (e instanceof Array)
+			{ return this.of (...e);
+			}
+			if (e instanceof Object)
+			{ return freezeOb (e);
+			}
+			return e;
+		}
+	);
+	let a = super.of(...elems2);
+	Object.freeze(a);
+return a;
+// when using arsubs as array you dont
+// want to hide their data.
+//	let shell =  new this();
+//	shell [SYS] .realMe = a;
+//	debugger
+//	return shell;
+}
+m (... funks)
+{  return this.monad(... funks);
+}
 monad (... funks )
 {
 	let {  resultMonad, self} = this;  // when I am called as a todo later
@@ -305,23 +376,32 @@ monad (... funks )
 	{ addToDo.call (self, 'monad', funks, resultMonad)  ;
 		return resultMonad;
 	}
-	let howManyReady    = 0;
+	let howManyReady  = 0;
 	let f;
+	let data = self;
+	if (self[SYS].data)
+	{ data = self[SYS].data;
+	}
 	for (var j=0; j < siz; j++)
 	{ if (funks[j])
 		{ f = funks[j];
 		}
-		let cbt = getCbThis (j, resultMonad) ;
-		let  resultOfF = f.call(cbt, self[j], j, this);
+		let outCh     = createOutChannel (j, resultMonad, f) ;
+		let resultOfF = f.call(outCh,  data [j], outCh, j, data);
 		if (resultOfF !== undefined)
-		{ cbt (resultOfF) ;
-			// if result was undefined we assume the funk
-			// will later asynchronously call this(result) .
-			// But since it already did retun we do the
-			// same thing as it would do if it did not
-			// return a result meaning we call cbt() here
-			// so the same code gets executed both in the
-			// sync and async cases.
+		{
+      if (f.name)
+			{ debugger
+			  // f.call(outCh, data[j], j, this); // fix it
+			  throw new Error
+		  (`The NAMED monad-arg-function ${f.name}() returned a result:
+${resultOfF} .
+Only arrow- and other unnamed monad-arg-functions
+can return a result.
+`);
+			} else
+			{ 	outCh (resultOfF) ;
+			}
 		}
 	}
 	return resultMonad ;
@@ -330,17 +410,30 @@ monad (... funks )
 	function allDone (doerMonad)        // doerMonad is the one that just became ready
 	{  doerMonad [SYS].ready  = true;   // it is now ppossibleto calculate the next
 		 let flat = [];
-		 doerMonad.map
+		 let data = doerMonad;
+		 if (doerMonad[SYS].data)
+		 { data = doerMonad[SYS].data;
+		 } else
+		 { debugger
+		   // ? should not come here
+		   data = [];
+		   doerMonad.map (e,i,a)
+			 { data[i] = e;
+			 }
+		   doerMonad[SYS].data = data;
+		 }
+		 data.map
 		 ( (e, i, a) =>
 			 { flat =  [...flat, ...e];
+			   data[i] = null;
 			 }
 		 )
 		 flat .map
 		 ( (e, i, a) =>
-			 { doerMonad[i] = flat[i];
+			 { data[i] = flat[i];
 			 }
 		 );
-		 doerMonad.length = flat.length; // it is possible elems were dropped
+		 data.length = flat.length; // it is possible elems were dropped
 		 Object.freeze (doerMonad);
 		 let todos =   todosF.call (doerMonad);
 		 todos .map
@@ -356,27 +449,58 @@ monad (... funks )
 				}
 		 );
 	}
-	function getCbThis (i, resultMonad)
+	function createOutChannel (i, resultMonad,  $f)
 	{
-		ok (resultMonad)
-		return cbThis;
-		function cbThis (resultOfF)
-		{  if (resultMonad[i] === undefined)
+		ok (resultMonad);
+		outCh._ii = i;
+		return outCh;
+		function outCh (resultOfF)
+		{  if (outCh._called)
+			{ debugger
+			  throw new Error
+			  (`
+this() called more than once in:
+${$f}
+` );
+			}
+			outCh._called = true;
+      resultMonad[SYS].data
+      = resultMonad[SYS].data
+      ? resultMonad[SYS].data
+      : [];
+      let data = resultMonad[SYS].data;
+		  if (resultMonad[i] === undefined)
 			 { howManyReady++;
 			 }
 			 if (resultOfF instanceof Array)
-			 { resultMonad[i] = resultOfF;
+			 { // resultMonad[i] = resultOfF;
+			   data [i] = resultOfF;
 			 } else
-			 { resultMonad[i] = [ resultOfF ];
+			 { // resultMonad[i] = [ resultOfF ];
+			   data [i] = [resultOfF];
 			 }
+       resultMonad[i] = null;
 			 if (howManyReady >= siz)
 			 { allDone.call (this, resultMonad);
 			 }
+			 // IMPORTANT: This function must return
+			 // undefined/nothing because that has
+			 // sognificance as the reurn value of
+			 // monad-step-functions which cause an
+			 // error si a named monad-step-function
+			 // returns anything but undefined.
 		}
 	}
 }
-m (... funks)
-{  return this.monad(... funks);
+constructor (...args)
+{
+  let a  = super (...args);
+	a[SYS] = {};
+	a[SYS].todos = [];
+	return a;
+}
+static A (...args)       // this is what gets exported
+{ return Monad.of (...args);
 }
 _ (MonadF, timeout)
 {
@@ -387,9 +511,13 @@ _ (MonadF, timeout)
 	if (this instanceof Array)
 	{ self = this;
 	}
+  let siz     = self.size();
+	let data = self;
+	if (self[SYS].data)
+	{ data = self[SYS].data;
+	}
 	if (self [SYS].ready === false)
-	{ let siz     = self.size();
-	  resultMonad = new (self.constructor) (siz);
+	{ resultMonad = new (self.constructor) (siz);
 	  resultMonad [SYS].ready  = false;
 	  if (timeout !== undefined)
 		{ timer = setTimeout
@@ -409,37 +537,24 @@ within ${timeout} ms. \n`
   if (timer)
 	{ clearTimeout (timer);
 	}
-	return MonadF ( ... self) ;
-}
-constructor (...args)
-{
-  let a  = super (...args);
-	a[SYS] = {};
-	a[SYS].todos = [];
-	return a;
-}
-static A (...args)       // this is what gets exported
-{ return Monad.of (...args);
-}
-static of (...elems)
-{
-	let elems2 = elems.map
-	( e =>
-		{ if (e instanceof Monad)
-			{ return e;
-			}
-			if (e instanceof Array)
-			{ return this.of (...e);
-			}
-			if (e instanceof Object)
-			{ return freezeOb (e);
-			}
-			return e;
-		}
-	);
-	let a = super.of(...elems2);
-	Object.freeze(a);
-	return a;
+	 let newMonad  =  MonadF ( ... data ) ;
+	 if  (newMonad instanceof Monad )
+	 { return newMonad;
+	 }
+   let data2 = newMonad;
+   if (! (data2 instanceof Array))
+	 { if (data2 === undefined)
+		 { data2 = [];
+		 } else
+		 { data2  = [data2 ];
+		 }
+	 }
+    let nulls = data2.map(e=>null)
+	 // hide the data:
+	 newMonad = self.constructor.mutableOf (... nulls);
+	 newMonad[SYS].data = data2;
+	 Object.freeze (newMonad);
+	 return newMonad;
 }
 static mutableOf (...elems)
 {  let m = new this();
@@ -693,10 +808,7 @@ probably caused by a circular data-structure.
 		Object.freeze(ob);
 		let nextLevel = level + 1;
     for (let p in ob)
-		{ if (p === SYS)
-		  { // never here
-		  }
-		  freezeOb ( ob [p], nextLevel );
+		{ freezeOb ( ob [p], nextLevel );
 		}
 		return ob;
 	}
@@ -710,7 +822,49 @@ probably caused by a circular data-structure.
 	function todosF ()
 	{ return this[SYS].todos;
 	}
+}
+function _UserClassExample (MonadF)
+{ return class UserClass
+  {
+		static test ()
+		{
+		  const ok    = MonadF.ok;
+		  let uce = new this();
+      let resultMonad
+      = uce.mainCalc (end );
+	    // we can but makes little sense to
+	    // RETURN the result-monad.
+		  return resultMonad;
+		  function end (...elems)
+			{
+	      log (elems.join (', '));
+	      ok (elems, [11,21,31]);
+				return elems;
+			}
+		}
+		static init()
+		{ this.test();
+		  return this;
+		}
+	  stepA (e,o,i,a)
+		{ o (e*10);
+		}
+    stepB (e,o,i,a)
+		{ o (e+1);
+		}
+		mainCalc ( o  )
+		{ let A     = MonadF;
+		  let a     =  A(1,2,3);
+      let stepA = this.stepA.bind (this);
+      let stepB = this.stepB.bind (this);
+      let resultMonad =
+ 			  a.m (stepA)
+ 			   .m (stepB)
+	 			 ._ (o);
+       return resultMonad;
+		}
+  } .init()
+}
  function log (s)
 	{ console.log(s)
 	}
-}
