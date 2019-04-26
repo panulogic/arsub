@@ -1,4 +1,4 @@
-# arsub 0.3.1
+# arsub 0.3.2
 
 A subclass of Array adding a few useful methods.
  
@@ -29,11 +29,11 @@ https://twitter.com/ClassCloudLLC
 
     ok (a.first ()  ,  5 );
     ok (a.first (1) , [5]);
-    ok (a.first (2) , [4. 5]);
+    ok (a.first (2) , [4, 5]);
     ok (a.first (-1), [2,3,4,5]);
     ok (a.first (-2), [3,4,5]);
 
-    ok (a.last ()  ,  5 );
+    ok (a.last ()  , 5 );
     ok (a.last (1) , [5]);
     ok (a.last (2) , [4. 5]);
     ok (a.last (-1), [2,3,4,5]);
