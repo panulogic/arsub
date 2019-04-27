@@ -3,9 +3,23 @@
 let es6Export  =  _Monad().A ;
 export default es6Export;
 
-/**
-   Copyright 2019 Class Cloud LLC. All Rights Reserved.
-*/
+/* =========================================
+   Copyright 2019 Class Cloud LLC
+   Copyright 2019 Panu Viljamaa
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   =============================================*/
 
 "use strict";
 const MonadCreatorF = _Monad().A;
@@ -20,13 +34,13 @@ function _Monad (   )
 { const SYS = Symbol ('SYS');
   return class Monad extends Array
 	{ static version ()
-		{ return '0.3.2';
+		{ return '0.3.3';
 		}
 constructor (...args)
 {
   let a  = super (...args);
 	a[SYS]          = {};
-	a[SYS].todos    = [];
+	a[SYS].redos    = [];
 	a[SYS].history  = [];
 	a[SYS].data     = [...args];
 	return a;
@@ -295,9 +309,22 @@ return a;
 }
 _ ( MonadF )
 {
-let monad = this;
+// _() does not take the data out opf the monad
+// use $() for that. _() sinply cfalls the arg-function
+// MonadF passing this monad as argument.  That is
+// a simple way to provide simple syntax for
+// chaining of arg-functions.  aMonad._(f1)._(f2) ....
+let monad   = this;
 let theThis = this[SYS].theThis;
 let m2 = MonadF.call (theThis, monad);
+if (! (m2 instanceof Monad))
+{ debugger
+  if (! (m2 instanceof Array))
+	{ debugger
+			m2 = [m2];
+	}
+  m2 = Monad.A(...m2);
+}
 if (! m2 [SYS] )
 { m2 [SYS] = {}
 }
@@ -307,44 +334,49 @@ if (! m2 [SYS].theThis)
 return m2;
 }
 $ (dataF, timeout)
-{
-	if (! dataF)
+{ if (! dataF)
 	{ return this;
 	}
-	let {  resultMonad, self, timer} = this;  // when I am called as a todo later.
-	if (this instanceof Array)
+	let { redoerMonad, self,   nextMonad, timer} = this;
+	 // if I am called later when I become ready, have all my data.
+	if (this instanceof Monad)
 	{ self = this;
+	} else
+	{
 	}
-  let siz     = self.size();
 	let data = self;
 	if (self[SYS].data)
 	{ data = self[SYS].data;
 	}
+  let siz = self.size();
 	if (self [SYS].ready === false)
-	{ resultMonad = new (self.constructor) (siz);
-	  resultMonad [SYS].ready  = false;
-	  if (timeout !== undefined)
-		{ timer = setTimeout
-			( () =>
-				{ throw new Error
-				  (`\nComputation did NOT reach function "${dataF.name}()" 
-within ${timeout} ms. \n`
-          );
-				}
-				, timeout
-			);
-			// log (`SET timeout ${timeout} at \n${new Date().getTime()} `)
-		}
-	  addToDo.call (self, '$', [dataF], resultMonad, timer);
-	  return resultMonad;
+	{ nextMonad = new (self.constructor) (siz);
+	  nextMonad [SYS].ready  = false;
+    let timer = setTimer  (dataF, timeout);
+	  addReDo.call (self, '$', [dataF], nextMonad, timer);
+	  // the above redo-data must include  nextMonad which
+	  // we give out here because when I become ready
+	  // the data of the result-monad must be updated
+	  // because it can have followers as well.
+	  return nextMonad;
 	}
   if (timer)
 	{ clearTimeout (timer);
 	}
 	 let newMonad  =  dataF ( ... data ) ;
+	 // above does the main thing calling the arg-funk
+	 // with my data so ti can do somethign with it like
+	 // log it on console.
+   // If the result of the funk is amonad then we can
+   // simply return it:
 	 if  (newMonad instanceof Monad )
 	 { return newMonad;
 	 }
+    // So calling the funk above ios the main thing
+    // but we also want to return something, and we
+    // want to return a monad, which carries the data
+    // further in case you want to do something more
+    // with it:
    let data2 = newMonad;
    if (! (data2 instanceof Array))
 	 { if (data2 === undefined)
@@ -353,12 +385,33 @@ within ${timeout} ms. \n`
 		 { data2  = [data2 ];
 		 }
 	 }
-    let nulls = data2.map(e=>null)
-	 // hide the data:
+   let nulls = data2.map(e=>null)
 	 newMonad = self.constructor.mutableOf (... nulls);
 	 newMonad[SYS].data = data2;
 	 Object.freeze (newMonad);
 	 return newMonad;
+function setTimer  (dataF, timeout)
+{  let timer;
+if (timeout === 4 )
+{ debugger
+}
+	  if (timeout !== undefined)
+		{   timer = setTimeout
+			(  () =>
+				{ timeoutError (dataF, timeout)
+				}
+				, timeout
+			);
+		}
+  return timer;
+function timeoutError (dataF, timeout)
+{
+  throw new Error
+	 (`\nComputation did NOT reach function "${dataF.name}()" 
+   within ${timeout} ms. \n`
+	);
+}
+}
 }
 w (... funks)
 { // while
@@ -401,20 +454,17 @@ u (... funks)
 }
 monad (... funks )
 {
-	let {  resultMonad, self} = this;  // when I am called as a todo later
+	let {redoerMonad, self, nextMonad, timer
+	    } = this;  // when I am called as a todo later
 	if (this instanceof Array)
 	{ self =  this;
 	}
 	let siz  = self.size();
-	if (!  resultMonad)           // if it is there it is an array
-	{
-	  resultMonad = new (self.constructor) (siz);
-		resultMonad [SYS].ready    = false;
-		resultMonad [SYS].theThis  = this  [SYS].theThis;
-if (! self[SYS].data)
-{ debugger
-}
-		resultMonad[SYS].history
+	if (!  nextMonad)  // measn this is the first call, not a redo
+	{ nextMonad = new (self.constructor) (siz);
+		nextMonad [SYS].ready    = false;
+		nextMonad [SYS].theThis  = this  [SYS].theThis;
+		nextMonad[SYS].history
 		= [... self[SYS].history
 		   , [... self[SYS].data]
 		  ];
@@ -423,10 +473,12 @@ if (! self[SYS].data)
 		// from the outsideexcept you can reset it by calling
 		// resetH()
 	}
-// new Array(1,2) BEWARE that contaisn thoise elements but  new Array(5)  creates an array of length 5
+// new Array(1,2) BEWARE that contaisn 1,2 but  new Array(5)  creates an array of length 5
 	if (self[SYS].ready === false)
-	{ addToDo.call (self, 'monad', funks, resultMonad)  ;
-		return resultMonad;
+	{ addReDo.call (self, 'monad', funks, nextMonad);
+	  // nextMonad is the new monad which is not ready but we
+	  // return it anywya so it can be asked for more monads.
+		return nextMonad;
 	}
 	let howManyReady  = 0;
 	let f, unboundF;
@@ -435,9 +487,14 @@ if (! self[SYS].data)
 	{ data = self[SYS].data;
 	}
   let myThis;
-  if (this && this[SYS])
-	{ myThis = this[SYS].theThis;
+  if (self && self[SYS])
+	{ myThis = self[SYS].theThis;
 	}
+  myThis =  myThis ? myThis : self;
+  // if the monad was not explicitly bound
+  // to anything then we use the monad itself
+  // as  the 'this' inside the arg-functions.
+  // A good default
 	for (var j=0; j < siz; j++)
 	{ if (funks[j] )
 		{ f = funks[j];
@@ -446,14 +503,16 @@ if (! self[SYS].data)
 			{ f = f.bind (myThis);
 			}
 		}
-		let outCh     = createOutChannel (j, resultMonad, unboundF) ;
-		let resultOfF = f (data [j], outCh, j, data);
+		let outCh     = createOutChannel (j, nextMonad, unboundF) ;
+    let dataAsMonad =   Monad.A(...data);
+    // this makes it easy to extract last 2 etc.
+    // and also makes sure the arrays as such can not be
+    // modified inside the arg-funk.
+		let resultOfF = f.call (myThis, data [j], outCh, j, dataAsMonad);
 		if (resultOfF === undefined)
-		{
-       // when fetchdata arrives how am marked READY?
-       // but problem is really when a monad is reurned
-       // which is nmot ready the container still thinks
-       // one or its elemetns is ready
+		{ // do NOT push anything to outchannel because
+		  // we expect the function itself to do that
+		  // asynchronously later
 		} else
 		{ outCh (resultOfF);
 		  // note if they do not do return then result is
@@ -464,96 +523,95 @@ if (! self[SYS].data)
 		  // above push the reurn value to out-0ch
     }
 	}
-	return resultMonad ;
+	return nextMonad ;
 	// return it so the next m() call
 	// can be called upon it.
-	function allDone (doerMonad)        // doerMonad is the one that just became ready
-	{  doerMonad [SYS].ready  = true;   // it is now ppossibleto calculate the next
+	function allDone ( )        // redoerMonad is the one that just became ready
+	{
+	  let doneMonad = this;
+	  doneMonad [SYS].ready  = true;
+    // this monad is done but it may have followers in its redos
+    // list whose data now needs to be calculated because
+    // only now that can be done
 		 let flat = [];
-		 let data = doerMonad;
-		 if (doerMonad[SYS].data)
-		 { data = doerMonad[SYS].data;
+		 let data = doneMonad;
+		 if (doneMonad[SYS].data)
+		 { data = doneMonad[SYS].data;
 		 } else
 		 {  // should not come here any more
 		   data = [];
-		   doerMonad.map (e,i,a)
-			 { data[i] = e;
-			 }
-		   doerMonad[SYS].data = data;
+		   doneMonad.map
+		   ( (e,i,a) =>
+			   { data[i] = e;
+			   }
+			 )
+		   doneMonad[SYS].data = data;
 		 }
 		 data.map
 		 ( (e, i, a) =>
-			 { flat =  [...flat, ...e];
-			   data[i] = null;
+			 { // ok (e instanceof Array); // because not flattened yet
+			   flat =  [...flat, ...e];
+			   data[i] = null; // note flattening can also reduce elements
 			 }
 		 )
 		 flat .map
 		 ( (e, i, a) =>
 			 { data[i] = flat[i];
-			 }
+			   doneMonad[i] = null; // important because now there can be
+			 }                      // more elements.
 		 );
 		 data.length = flat.length; // it is possible elems were dropped
-		 Object.freeze (doerMonad);
-		 let todos =   todosF.call (doerMonad);
-		 todos .map
-		 ( ( mAndFandR, i, a) =>
+     doneMonad.length = data.length;
+		 Object.freeze (doneMonad);
+		 let redos =   redosF.call (doneMonad);
+		 redos .map
+		 ( ( eRedo , i, a) =>
 				{
-					let [methodName, argFunks, resultMonad, timer] = mAndFandR;
-					let self = doerMonad;
+					let [methodName, argFunks, nextMonad, timer] = eRedo;
+					let self = doneMonad;
 					if (typeof methodName === "function")
 					{  methodName();
-					   // completes what could not completed before
-					   /// such as adding this monad as aaaan element
-					   // to its container monad so tyhat npow the
-					   // container-monad can become ready as well.
+					   //  used when outCh was passed a no-ready monad
+					   // which it put on ho9ld here now we can do what
+					   // outCh does for ready monads.
 					   return;
-					   // now we get this. Now must somehow
-					   // cause the container to become ready as well.
 					}
-					 doerMonad [methodName].call
-					 ( { self, resultMonad, timer
+// Why do we need to next pass-in also the doneMonad
+// even though that is the subject of the call? BECAUSE
+// using  .call() here replaces the actual target-this
+// with the {} here so the method needs a way to figure
+// out who is the monad it was originally called with:
+					 doneMonad [methodName].call
+					 ( { doneMonad, self, nextMonad, timer
 						 }
 					 , ... argFunks
 					 );
 				}
 		 );
 	}
-	function createOutChannel (i, resultMonad,  $f)
+	function createOutChannel (i, processedMonad,  $f)
 	{
-		ok (resultMonad);
+		ok (processedMonad);
 		outCh._ii = i;
 		return outCh;
 		function outCh (resultOfF)
 		{ ensureOnlyOneOutput (outCh);
 			outCh._called = true;
-      resultMonad[SYS].data
-      = resultMonad[SYS].data
-      ? resultMonad[SYS].data
+      processedMonad[SYS].data
+      = nextMonad[SYS].data
+      ? nextMonad[SYS].data
       : [];
-      let data = resultMonad[SYS].data;
-			 if (resultOfF instanceof Array)
-			 {
+      let data = processedMonad[SYS].data;
+			if (resultOfF instanceof Array)
+			{
 if ( resultOfF instanceof Monad )
-{ // mopnads differe from ordinary arrays in that they can have hidden data.
-  // it is the tasl of the system to extract the data out fo whatever
-  // the step-unction returns
-	// a monad was put into the out-channel.
-	// we must takes its data instead?
-	// Yes but later  it might be a monad which
-	// is not ready so its data may not be valid yet.
+{ // it can be a monad which is not ready
+	// so must delay its processing until it
+	// becomes ready.
 			   if ( resultOfF [SYS].ready === false)
 			   {
-			    // TODO: if an element-result is a monad and
-			     // that is not ready like the fetch-mond
-			     // returned by my method fetch() then the containing
-			     // monad can not be ready either why becaseu we
-			     // will flatten out all elements when all are ready.
-			     // below makes it ready too soon.
-			     // bug was we did not add it to resultOfF but to result monad
-			     // now we do and below arraynge this outCh to be called AGAIN
-			     // when the resultOfF we got here becomes ready
 			     outCh._called  = false; // else error
-			      addToDo.call
+			      addReDo.call
 			      (   resultOfF
 			      ,  () => outCh (resultOfF)
 			      , [  (...args
@@ -563,16 +621,16 @@ if ( resultOfF instanceof Monad )
 								   // method-call  when the result-monad is ready.
 								 }
 			        ]
-			      , resultMonad
+			      , processedMonad
 			      )  ;
 		        return  ;
 			   } else
-				 {
-				 	// it is ready if it is a monad we should
-				 	// take its data instead
+				 { 	// it is ready if it is a monad we should
+				 	  // take its data instead since the data is what
+				 	  // will be flattened together with other
+				 	  // elements results when all are ready..
 if (resultOfF[SYS] && resultOfF[SYS].data  )
-{
-  resultOfF = resultOfF[SYS].data
+{ resultOfF = resultOfF[SYS].data
 }
 				 }
 			 }
@@ -581,16 +639,16 @@ if (resultOfF[SYS] && resultOfF[SYS].data  )
 			 { // these are the element arrays to be concatenated later
 			   data [i] = [resultOfF];
 			 }
-			 if (resultMonad[i] === undefined)
+			 if (processedMonad[i] === undefined)
 			 { howManyReady++; // in case it is adde many times
 			 } else
 			 { // not sure if we come here but it is clear
 			 	 // if you overwrite an existing slot it does not
 			 	 // cause the container to become any more ready.
 			 }
-       resultMonad[i] = null;
+       processedMonad[i] = null;
 			 if (howManyReady >= siz)     // note they can become ready in any order
-			 { allDone.call (this, resultMonad);
+			 { allDone.call (processedMonad );
 			 }
 			 // IMPORTANT: This function must return
 			 // undefined/nothing because that has
@@ -713,16 +771,16 @@ probably caused by a circular data-structure.
 		}
 		return ob;
 	}
-	function addToDo (methodName, argFunks, resultMonad, timer )
-	{ ok (resultMonad);
+	function addReDo (methodName, argFunks, nextMonad, timer )
+	{ ok (nextMonad);
 		ok (argFunks instanceof Array);
-		this[SYS].todos.push
-		 ( [methodName, argFunks, resultMonad, timer]
+		this[SYS].redos.push
+		 ( [methodName, argFunks, nextMonad, timer]
 		 );
 	}
-	function todosF ()
-	{ let todos =  this[SYS].todos;
-		return todos;
+	function redosF ()
+	{ let redos =  this[SYS].redos;
+		return redos;
 	}
 } // end _Monad()
 function _Test (MonadCreatorF)
@@ -738,12 +796,78 @@ function _Test (MonadCreatorF)
 // So p0oint your browser to:
 // http://127.0.0.1:8123/ and
 //  http://127.0.0.1:8123/
+fiboTest (MonadCreatorF);
 basicTest (MonadCreatorF);
 testAsyncMonad (MonadCreatorF) ;
 _UserClassExample (MonadCreatorF);
 let SE = _ServerExample (MonadCreatorF);
 _ServerSubClassExample (SE, MonadCreatorF);
-return
+return;
+function fiboTest (M)
+{
+// Calculating the Fibonacci-series is a
+// good example of what monads can do that
+// map() can not because the fiboArgFunk()
+// below must produce a varying number of
+// results each time it is called. map()
+// can never return an array that is of
+// different length than its recipient,
+// m() can. Of course Fibonacci series can be
+// calculated in many different ways but this
+// example is abhout demonstrating why map()
+// is not all you need..
+//
+// Note the method m() takes also the e, i
+// and a -arguments like map() does, and uses
+// those here to know about the other elements
+// of the monadic-array being processed besides
+// the current element.
+ // A monad must have at least one element
+ // if you want arg-function of m() to get
+ // called -- since that gets called once
+ // for each element.  Below the actual value
+ // the fibo-series is started with does not
+ // matter, just the fact that the starting
+ // monad must have exactly one element.
+  let fm0 =  M (0).m (fiboArgFunk);
+  let fm1 =  fm0.m (fiboArgFunk);
+  let fm2 =  fm1.m (fiboArgFunk);
+  let fm3 =  fm2.m (fiboArgFunk);
+  let fm4 =  fm3.m (fiboArgFunk);
+  let fm5 =  fm4.m (fiboArgFunk);
+  ok (fm5.eq([0,1,1,2,3,5,8]));
+  let fm6 = M (0,1,1,2,3,5,8).m (fiboArgFunk);
+  ok (fm6.eq([0,1,1,2,3,5,8,13]));
+  // Only way to get the values out of a monad
+  // is to use $() and a side-variable.
+  // Note _() does not take the monad a part
+  // it passes the monad as such as argument
+  // to the arg-funk of _() so you can then
+  // apply .s() and .w() etc. to it.
+  // Note: $() can extract the data only if
+  // it ready which may not be the case if
+  // moand-steps are async.
+  let fiboValues;
+  fm6.$ ( (...data) =>
+					{ fiboValues = data;
+          }
+	      );
+  ok (fm3.eq (fiboValues, [0,1,1,2,3,5,8,13]));
+  // eq() is an instance-method of monads.
+  return;
+ function fiboArgFunk  (e,o,i,a)
+ {
+   if (a.length === 1  )
+	 { return [0, 1];
+	 }
+	 if (i  != a.length-1)
+	 { return e;
+	 }
+	 let last2      = a.last(2);
+	 let sumOfLast2 = last2[0] + last2[1];
+   return [last2[1], sumOfLast2] ;
+ }
+}
 function basicTest (MonadCreatorF)
 {
 const A     = MonadCreatorF; // this.A;
@@ -1021,7 +1145,7 @@ function testAsyncMonad (M)
    let ok    = asm.ok;
 	 asm
 	 .m (asyncF10, asyncF1)
-	 .$ (terminalY, 4); // 3);
+	 .$ (terminalY, 445);
    asm        // [1, 2, 3]
 	 .m (asyncF10 )   // [10, 20, 30]
 	 .m (asyncF1  )   // [11, 21, 31]
@@ -1266,34 +1390,75 @@ fetchMonad loaded content of size:
   } .init()
 } // end _UserClassExample()
 function _ServerExample (MonadF)
-{ return class ServerExample
+{  const DATA = Symbol('DATA');
+    return class ServerExample
   {
+    constructor (port)
+		{ this[DATA]          = {};
+		  this[DATA].sessions = {};
+		  this[DATA].port     = port;
+		}
+    port ()
+		{ return this[DATA].port
+		}
     static startServer (port=8123)
 		{
-		  let ServerClass = this;
-      startServerF (port);
+      let server = new this(port);
+      server.start  ();
       return;
-      function handleRequest (req, resp)
-			{
- 				 let me    = new ServerClass ();
- 				 let state = {};
-		     let monad = MonadF ( {req, resp, state, port}
-		                        ).bind(me);
-		     monad ._ (me.authenticate  )
-					     ._ (me.authorize     )
-					     ._ (me.produceContent)
-				       ._ (me.sendContent   )
-				       ;
-			}
-		  function startServerF (port=8123)
-			{ let http       = require('http');
-				let nodeServer = http.createServer (handleRequest);
-				nodeServer . listen (port);
-				log (`
-STARTED HTTP-SERVER at http://127.0.0.1:${port}
-`);
-			}
     }
+		start  ()
+	  { let port       = this[DATA].port;
+	    let http       = require('http');
+		  let nodeServer = http.createServer
+		                   (this.handleRequest.bind(this));
+			nodeServer . listen (port);
+			log (`\nSTARTED HTTP-SERVER at http://127.0.0.1:${port}\n`);
+		}
+    handleRequest (req, resp)
+	  {
+      let me    = this;
+ 		  let state = {};
+		  let monad = MonadF ( {req, resp, state}
+		                     ).bind(me);
+		  monad ._ (me.authenticate  )
+					  ._ (me.authorize     )
+					  ._ (me.produceContent)
+				    ._ (me.sendContent   )
+				     ;
+			}
+sessionIdKey ()
+{ let port = this[DATA].port;
+  let key =  'sessionId_' + port;
+	return key;
+}
+    getSession (req, resp)
+		{ let cookie   = this.getCookie  (req, resp);
+			let sessions = this[DATA].sessions;
+			let sid      = cookie[this.sessionIdKey ()] ; // .sessionId;
+			// log (`SESSION-ID = ` + sid);
+			return  sessions[sid];
+			// session is undefined until authenticate()
+			// calls getsNewSession() and stores its id
+			// into the cookie.
+		}
+		getNewSession ( )
+		{ let id = Math.random().toString(36).slice(2);
+      let sn = {id};
+		  this[DATA].sessions[id] = sn;
+		  sn.count = 0;
+			return sn;
+		}
+    serverId ()
+		{
+		  let sid = this.serverId._serverId;
+			if (sid)
+			{ return sid;
+			}
+			sid = Math.random().toString(36).slice(2);
+      this.serverId._serverId = sid;
+      return sid;
+		}
 		static test (port=8123)
 		{
 			if (typeof require !== "undefined")
@@ -1305,49 +1470,83 @@ STARTED HTTP-SERVER at http://127.0.0.1:${port}
 		{ this.test(port);
 		  return this;
 		}
+		getCookie (req, resp, key)
+		{
+			let cString = req.headers.cookie;
+			if (! cString )
+			{ return {};
+			}
+			let cookie  = {};
+			let parts = cString.split(/;/);
+			parts.map
+			( s =>
+				{ let ps2 = s.split(/=/);
+				  let k   =  ps2[0];
+				  let v   =  ps2[1]
+				  if (k)
+					{ cookie[k.trim()] = v;
+					} else
+					{ debugger
+					}
+				}
+			);
+			if (key)
+			{ return cookie[key];
+			}
+			return cookie;
+		}
+    setCookie(k, v, resp)
+		{	resp.setHeader
+		   ('Set-Cookie', `${k}=${v}; HttpOnly `);
+		}
 		authenticate (aMonad)
 		{ return aMonad.m (f);
 			 function f
-				( {req, resp, state, port}, o, i)
+			 ( {req, resp, state, port}, o, i)
 			 {
-			   // if below we mark  this as 403 un-authenticated
-			   // then tehre is still 50% chance that  page becomes
-			   // un-authorized meaning there is only 25% chance
-			   // that status will be 401. THEREFORE to make this
-			   // demo more illustrative we decrease the chance
-			   // of un-authorization in authorize()
-				 let flip = new Date().getTime() % 2;
-				 flip = flip ? true : false;
-				 state._authenticated = flip;
-				 if (! state._authenticated)
-				 { state._status     = 401; // un-AUTHENTICATED
+				 let u = req.url;
+				 let session = this.getSession (req, resp)
+         if (session)
+				 { return {req, resp, state};
 				 }
-				 return {req, resp, state, port};
+				 state._status = 401; // un-AUTHENTICATED, no session
+				 // Below creates the session-cookie but that
+				 // gets used only on the next page-request
+				 // so this request will return a page which
+				 // tells you to load the page again.
+				 setTimeout
+				 ( () =>
+					 {
+					   // problem is here  we create a new session because
+					   // above the current-server instance did not
+					   // have a stored session by key that comes in the
+					   // request from the browser, which is the cookie
+					   // created for the other part.
+					   session = this.getNewSession ();
+				     let sid = session.id;
+				     this.setCookie
+				       (this.sessionIdKey(), sid, resp);
+					   o ( {req, resp, state} )
+					 }
+					 , 222
+				 );
 			 }
 		}
 		authorize (aMonad)
 		{ return aMonad.m (f);
 			function f ({req, resp, state, port}, o, i)
 			{
-				 // can you be authorized is you are not authenticated?
-         // yes because depending on the URL some pages are
-         // available to the public, you are authorized to view
-         // thejm even if we can not or did not authenticate you.
-         // And even if you are authenticated you are not
-         // authorized to see very possible page.
-         //
-         // So the status tells the REASON why you did not see
-         // the content of the page. But really the logic is then
-         // that mere3 lack of authenticaton should not be the
-         // reason to not see a page.
-				 let flip = new Date().getTime() % 4;
-				 // increase the chance of passiong authorizaiton
-				 // so the 3rd option neither un-autghenticated nor
-				 // un-authorized has more equal chance.
-				 flip = flip ? true : false;
-         state._authorized = flip;
-         if (! state._authorized)
-				 { state._status = 403;
+				 let session = this.getSession(req, resp);
+         if (! session)
+				 { return {req, resp, state, port};
+				   // we don't mark it unauthorized because
+				   // it is un-authenticated as long as there
+				   // is no session.
+				 }
+         let count = session.count;
+         session.count++;
+         if (count > 3)
+				 {  state._status = 403;
 				 }
 				 return {req, resp, state, port};
 			}
@@ -1370,28 +1569,21 @@ STARTED HTTP-SERVER at http://127.0.0.1:${port}
 			function produceContentF ({req, resp, state, port}, o, i)
 			{
          let content    = this.htmlContent (state._status);
-         // Observe: The 'this' is an instance of the
-         // ServerExample or its subclass, wo we can call
-         // upon its methods.
          state._content = `${content}`;
 				 return {req, resp, state };
 			}
 		}
 		htmlContent (status)
-		{  // This is not a flowchart method argumetn is not a monad.
-		   // Making this amethod make it possible to inherit
-		   // this into subcalsses.
-		     let content = 'A) Logged-in and authorized to see this content. ';
-				 if (status === 403 )
-				 {  content = `B) <u>UN-AUTHORIZED, forbidden</u>. <br>
-                       Either<br> a) You ARE logged-in but you   do NOT have <br>
-                        the rights to see
-                         the page you requested or <p> b)
-                      You are NOT logged-in AND the page   <br>
-                       you requested is not available to the public. `;
-				 }
+		{
+		     let content = `2) Authenticated and Authorized.<p>
+                           Please reload this page a few times ...`;
 		     if (status === 401 )
-				 {  content = 'C) NOT logged-in, BUT, this IS PUBLIC content, <br>so here it is .... ';
+				 {  content = `1) Un-Authenticated. <p> 
+				                  Please reload this page to get in .... `;
+				 }
+				 if (status === 403 )
+				 {  content = `3) <u>Authenticated but UN-AUTHORIZED, <br>
+                          page was reloaded too many times! </u>. `;
 				 }
          return `<h2>${content}</h2>`;
 		}
@@ -1413,7 +1605,7 @@ function _ServerSubClassExample (ServerExample, MonadF)
 		  // USING SUPER-MONADS:
 		  let superMonad = super.produceContent (aMonad);
 		  return superMonad.m (f);
-			function f ({req, resp, state, port}, o, i)
+			function f ({req, resp, state}, o, i)
 			{
 			  let content  =  state ._content;
         let contentB = this.htmlContent (state._status); // inherited method
@@ -1426,17 +1618,16 @@ function _ServerSubClassExample (ServerExample, MonadF)
         // which makes it easy to reuse METHODS of the
         // owning class INSIDE INNERT FUNTIONS like here.
         ok (content === contentB);
-         debugger
         state = Object.assign({}, state);
         state._content =
-`<h2>SERVER-SUBCLASS @ ${port} <p>
+`<h2>SERVER-SUBCLASS @ ${this.port()} <p>
 ${content}</h2>`;
-				 return {req, resp, state, port};
+				 return {req, resp, state};
 			}
 		}
 		outerHTML (aMonad)
 		{ return aMonad.m (f);
-			function f ({req, resp, state, port}, o, i)
+			function f ({req, resp, state}, o, i)
 			{
 			  let innerContent = state._content;
         state  = Object.assign({}, state);
@@ -1447,7 +1638,7 @@ ${content}</h2>`;
 ${innerContent}
 </body></html>
 `;
-return {req, resp, state, port};
+return {req, resp, state};
 			}
 		}
 	} .init(8124)

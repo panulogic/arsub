@@ -5,6 +5,7 @@ For information about future releases
 follow https://twitter.com/ClassCloudLLC.
 
 ######
+##### v. 0.3.3:  More examples
 ##### v. 0.3.2:  Better monads-API
 ##### v. 0.3.1:  Cleaned up debugging statements
 ##### v. 0.3.0:  New type monad-arg function args: (e, o, i, a)
